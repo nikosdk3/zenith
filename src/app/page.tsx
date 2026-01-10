@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { api } from "../../convex/_generated/api";
 
-const X = () => {
+const Page = () => {
   const projects = useQuery(api.projects.get);
   const createProject = useMutation(api.projects.create);
 
@@ -24,4 +24,4 @@ const X = () => {
   );
 };
 
-export default X;
+export default Page;
