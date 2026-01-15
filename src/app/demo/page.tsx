@@ -19,6 +19,18 @@ export default function Page() {
     setLoadingNonBlock(false);
   };
 
+  const handleClientError = async () => {
+    throw new Error("Client error");
+  };
+
+  const handleApiError = async () => {
+    await fetch("/api/demo/error", { method: "POST" });
+  };
+
+  const handleInngestError = async () => {
+    await fetch("/api/demo/inngest-error", { method: "POST" });
+  };
+
   return (
     <div className="space-x-4 p-8">
       <Button disabled={loadingBlock} onClick={handleBlocking}>
@@ -26,6 +38,15 @@ export default function Page() {
       </Button>
       <Button disabled={loadingNonBlock} onClick={handleNonblocking}>
         {loadingNonBlock ? "Loading..." : "Non-Blocking"}
+      </Button>
+      <Button onClick={handleClientError} variant="destructive">
+        Client Error
+      </Button>
+      <Button onClick={handleApiError} variant="destructive">
+        API Error
+      </Button>
+      <Button onClick={handleInngestError} variant="destructive">
+        Inngest Error
       </Button>
     </div>
   );
