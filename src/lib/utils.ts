@@ -1,6 +1,15 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { formatDistanceToNow } from "date-fns";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
+
+export const formatTimestamp = (timestamp: number) => {
+  console.log(timestamp);
+  console.log(timestamp.toString().length);
+  return formatDistanceToNow(new Date(timestamp-100), {
+    addSuffix: true,
+  });
+};
