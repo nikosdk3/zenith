@@ -1,5 +1,7 @@
 import Link from "next/link";
+
 import { formatTimestamp } from "@/lib/utils";
+
 import { Doc } from "../../../../convex/_generated/dataModel";
 import { getProjectIcon } from "../utils/get-project-icon";
 
