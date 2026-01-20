@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Poppins } from "next/font/google";
 import { FaGithub } from "react-icons/fa";
 import { SparkleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -16,14 +15,10 @@ import { cn } from "@/lib/utils";
 import { Kbd } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
 
+import { font } from "../utils/font";
 import { ProjectsList } from "./projects-list";
 import { useCreateProject } from "../hooks/use-projects";
 import { ProjectsCommandDialog } from "./projects-command-dialog";
-
-const font = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export const ProjectsView = () => {
   const createProject = useCreateProject();

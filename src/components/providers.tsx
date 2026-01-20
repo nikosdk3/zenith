@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import {
   ClerkProvider,
   useAuth,
-  UserButton,
 } from "@clerk/nextjs";
 import {
   Authenticated,
@@ -17,7 +16,8 @@ import { shadcn } from "@clerk/themes";
 
 import { UnauthenticatedView } from "@/features/auth/unauthenticated-view";
 import { AuthLoadingView } from "@/features/auth/auth-loading-view";
-import { ThemeProvider } from "@/components/theme-provider";
+
+import { ThemeProvider } from "./theme-provider";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -40,7 +40,6 @@ export const Providers = ({ children }: { children: ReactNode }) => {
           disableTransitionOnChange
         >
           <Authenticated>
-            <UserButton />
             {children}
           </Authenticated>
           <Unauthenticated>

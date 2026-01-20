@@ -1,7 +1,8 @@
 import { FaGithub } from "react-icons/fa";
 
+import { AlertCircleIcon, GlobeIcon, LoaderIcon } from "lucide-react";
+
 import { Doc } from "../../../../convex/_generated/dataModel";
-import { AlertCircleIcon, GlobeIcon, Loader2Icon } from "lucide-react";
 
 export const getProjectIcon = (data: Doc<"projects">, size: number) => {
   switch (data.importStatus) {
@@ -13,7 +14,7 @@ export const getProjectIcon = (data: Doc<"projects">, size: number) => {
       );
     case "importing":
       return (
-        <Loader2Icon
+        <LoaderIcon
           className={`text-muted-foreground size-${size} animate-spin`}
         />
       );
