@@ -22,11 +22,11 @@ import {
 
 import { Id } from "../../../../convex/_generated/dataModel";
 import { font } from "../utils/font";
-import { useGetProjects, useRenameProject } from "../hooks/use-projects";
+import { useProject, useRenameProject } from "../hooks/use-projects";
 import { formatDistanceToNow } from "date-fns";
 
 export const Navbar = ({ projectId }: { projectId: Id<"projects"> }) => {
-  const project = useGetProjects(projectId);
+  const project = useProject(projectId);
   const renameProject = useRenameProject(projectId);
 
   const [isRenaming, setIsRenaming] = useState(false);

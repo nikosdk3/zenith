@@ -18,7 +18,7 @@ export const ContinueCard = ({ project }: { project: Doc<"projects"> }) => {
       >
         <Link href={`/projects/${project._id}`} className="group">
           <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {getProjectIcon(project, 3.5)}
               <span className="truncate font-medium">{project.name}</span>
             </div>
