@@ -66,6 +66,11 @@ export const getFolderContents = query({
       throw new Error("Unauthorized access to this project");
     }
 
+    if (args.parentId) {
+      const parent = await ctx.db.get("files", args.parentId);
+      if (parent?.type !== "folder") throw new Error("");
+    }
+
     const files = await ctx.db
       .query("files")
       .withIndex("by_project_parent", (q) =>
@@ -234,7 +239,6 @@ export const renameFile = mutation({
 export const deleteFile = mutation({
   args: {
     id: v.id("files"),
-    newName: v.string(),
   },
   handler: async (ctx, args) => {
     const identity = await verifyAuth(ctx);
