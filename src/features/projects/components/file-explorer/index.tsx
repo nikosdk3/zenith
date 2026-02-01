@@ -19,11 +19,10 @@ import {
   useFolderContents,
 } from "../../hooks/use-files";
 import { LoadingRow } from "./loading-row";
-import { cp } from "fs";
 import { Tree } from "./tree";
 
 export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [collapseKey, setCollapseKey] = useState(0);
   const [creating, setCreating] = useState<"file" | "folder" | null>(null);
 
