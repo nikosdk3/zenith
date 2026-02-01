@@ -8,19 +8,25 @@ export const useFile = (fileId: Id<"files"> | null) => {
 };
 
 export const useFilePath = (fileId: Id<"files"> | null) => {
-  return useQuery(api.files.getFilePath, fileId ? { id: fileId } : "skip")
-}
+  return useQuery(api.files.getFilePath, fileId ? { id: fileId } : "skip");
+};
 
 export const useCreateFile = () => {
   return useMutation(api.files.createFile);
+  // TODO: Add optimisitic mutation
 };
 
 export const useCreateFolder = () => {
   return useMutation(api.files.createFolder);
+  // TODO: Add optimisitic mutation
 };
 
 export const useRenameFile = () => {
   return useMutation(api.files.renameFile);
+};
+
+export const useUpdateFile = () => {
+  return useMutation(api.files.updateFile);
 };
 
 export const useDeleteFile = () => {
