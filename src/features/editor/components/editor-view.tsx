@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 import { useFile, useUpdateFile } from "@/features/projects/hooks/use-files";
 
@@ -8,7 +9,6 @@ import { useEditor } from "../hooks/use-editor";
 import { CodeEditor } from "./code-editor";
 import { TopNavigation } from "./top-navigation";
 import { FileBreadcrumbs } from "./file-breadcrumbs";
-import { useRef } from "react";
 
 const DEBOUNCE_MS = 1500;
 
@@ -20,6 +20,14 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
 
   const isActiveFileBinary = activeFile && activeFile.storageId;
   const isActiveFileText = activeFile && !activeFile.storageId;
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [activeTabId]);
 
   return (
     <div className="flex h-full flex-col">
