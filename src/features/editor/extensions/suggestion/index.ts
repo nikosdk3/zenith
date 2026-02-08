@@ -9,11 +9,13 @@ import {
 } from "@codemirror/view";
 import { StateEffect, StateField } from "@codemirror/state";
 
+import { fetcher } from "./fetcher";
+
 const setSuggestionEffect = StateEffect.define<string | null>();
 
 const suggestionState = StateField.define<string | null>({
   create() {
-    return "//TODO: Implement";
+    return null;
   },
   update(value, transaction) {
     // Check each effect in transaction
@@ -44,6 +46,102 @@ class SuggestionWidget extends WidgetType {
   }
 }
 
+let debounceTimer: number | null = null;
+let isWaitingForSuggestion = false;
+const DEBOUNCE_DELAY = 300;
+let currentAbortController: AbortController | null = null;
+
+const generatePayload = (view: EditorView, fileName: string) => {
+  const code = view.state.doc.toString();
+  if (!code || code.trim().length === 0) return null;
+
+  const cursorPosition = view.state.selection.main.head;
+  const currentLine = view.state.doc.lineAt(cursorPosition);
+  const cursorInLine = cursorPosition - currentLine.from;
+
+  const previousLines: string[] = [];
+  const previousLinesToFetch = Math.min(5, currentLine.number - 1);
+  for (let i = previousLinesToFetch; i >= 1; i--) {
+    previousLines.push(view.state.doc.lineAt(currentLine.number - i).text);
+  }
+
+  const nextLines: string[] = [];
+  const totalLines = view.state.doc.lines;
+  const nextLinesToFetch = Math.min(5, totalLines - currentLine.number);
+  for (let i = 1; i < nextLinesToFetch; i++) {
+    nextLines.push(view.state.doc.lineAt(currentLine.number + i).text);
+  }
+
+  return {
+    fileName,
+    code,
+    currentLine: currentLine.text,
+    previousLines: previousLines.join("\n"),
+    textBeforeCursor: currentLine.text.slice(0, cursorInLine),
+    textAfterCursor: currentLine.text.slice(cursorInLine),
+    nextLines: nextLines.join("\n"),
+    lineNumber: currentLine.number,
+  };
+};
+
+const createDebouncePlugin = (fileName: string) => {
+  return ViewPlugin.fromClass(
+    class {
+      constructor(view: EditorView) {
+        this.triggerSuggestion(view);
+      }
+
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.selectionSet) {
+          this.triggerSuggestion(update.view);
+        }
+      }
+
+      triggerSuggestion(view: EditorView) {
+        if (debounceTimer !== null) {
+          clearTimeout(debounceTimer);
+        }
+
+        if (currentAbortController !== null) {
+          currentAbortController.abort();
+        }
+
+        isWaitingForSuggestion = true;
+        debounceTimer = window.setTimeout(async () => {
+          const payload = generatePayload(view, fileName);
+
+          if (!payload) {
+            isWaitingForSuggestion = false;
+            view.dispatch({ effects: setSuggestionEffect.of(null) });
+            return;
+          }
+
+          currentAbortController = new AbortController();
+          const suggestion = await fetcher(
+            payload,
+            currentAbortController.signal,
+          );
+
+          isWaitingForSuggestion = false;
+          view.dispatch({
+            effects: setSuggestionEffect.of(suggestion),
+          });
+        }, DEBOUNCE_DELAY);
+      }
+
+      destroy() {
+        if (debounceTimer !== null) {
+          clearTimeout(debounceTimer);
+        }
+
+        if (currentAbortController !== null) {
+          currentAbortController.abort();
+        }
+      }
+    },
+  );
+};
+
 const renderPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
@@ -69,6 +167,10 @@ const renderPlugin = ViewPlugin.fromClass(
     }
 
     build(view: EditorView) {
+      if (isWaitingForSuggestion) {
+        return Decoration.none;
+      }
+
       // Get current suggestion from the state
       const suggestion = view.state.field(suggestionState);
       if (!suggestion) {
@@ -112,6 +214,7 @@ const acceptSuggestionKeymap = keymap.of([
 
 export const suggestion = (fileName: string) => [
   suggestionState, // State storage
+  createDebouncePlugin(fileName), // Trigger suggestions on typing
   renderPlugin, // Renders ghost text
   acceptSuggestionKeymap, // Tab to accept
 ];
