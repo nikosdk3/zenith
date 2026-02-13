@@ -1,12 +1,23 @@
-import { Button } from "@/components/ui/button";
+import ky from "ky";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DEFAULT_CONVERSATION_TITLE } from "../../../../convex/constants";
 import { CopyIcon, HistoryIcon, LoaderIcon, PlusIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputBody,
@@ -16,22 +27,18 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
+
 import {
   useConversation,
   useConversations,
   useCreateConversation,
   useMessages,
 } from "../hooks/use-conversations";
-import { useState } from "react";
-import { toast } from "sonner";
 import {
-  Message,
-  MessageAction,
-  MessageActions,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message";
-import ky from "ky";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const ConversationSidebar = ({
   projectId,
@@ -46,7 +53,7 @@ export const ConversationSidebar = ({
   const conversations = useConversations(projectId);
 
   const activeConversationId =
-    selectedConversationId ?? conversations?.[0]._id ?? null;
+    selectedConversationId ?? conversations?.[0]?._id ?? null;
 
   const activeConversation = useConversation(activeConversationId);
   const conversationMessages = useMessages(activeConversationId);
@@ -94,7 +101,7 @@ export const ConversationSidebar = ({
           message: message.text,
         },
       });
-    } catch {
+    } catch (error) {
       toast.error("Message failed to send");
     }
   };
@@ -136,14 +143,19 @@ export const ConversationSidebar = ({
                 message.status === "completed" &&
                 messageIndex === (conversationMessages?.length ?? 0) - 1 && (
                   <MessageActions>
-                    <MessageAction
-                      onClick={() => {
-                        navigator.clipboard.writeText(message.content);
-                      }}
-                      label="Copy"
-                    >
-                      <CopyIcon className="size-3" />
-                    </MessageAction>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <MessageAction
+                          onClick={() => {
+                            navigator.clipboard.writeText(message.content);
+                          }}
+                          label="Copy"
+                        >
+                          <CopyIcon className="size-3" />
+                        </MessageAction>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">Copy</TooltipContent>
+                    </Tooltip>
                   </MessageActions>
                 )}
             </Message>
