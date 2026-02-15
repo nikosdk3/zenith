@@ -27,6 +27,11 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import {
   useConversation,
@@ -34,11 +39,7 @@ import {
   useCreateConversation,
   useMessages,
 } from "../hooks/use-conversations";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { PastConversationsDialog } from "./past-conversations-dialog";
 
 export const ConversationSidebar = ({
   projectId,
@@ -48,6 +49,7 @@ export const ConversationSidebar = ({
   const [input, setInput] = useState("");
   const [selectedConversationId, setSelectedConversationId] =
     useState<Id<"conversations"> | null>(null);
+  const [pastConversationsOpen, setPastConversationsOpen] = useState(false);
 
   const createConversation = useCreateConversation();
   const conversations = useConversations(projectId);
@@ -91,7 +93,6 @@ export const ConversationSidebar = ({
   const handleSubmit = async (message: PromptInputMessage) => {
     // If processing and no new message, this is just a stop function
     if (isProcessing && !message.text) {
-      console.log("HERE");
       await handleCancel();
       setInput("");
       return;
@@ -122,85 +123,97 @@ export const ConversationSidebar = ({
   };
 
   return (
-    <div className="bg-sidebar flex h-full flex-col">
-      <div className="flex h-8.75 items-center justify-between border-b">
-        <div className="truncate pl-3 text-sm">
-          {activeConversation?.title ?? DEFAULT_CONVERSATION_TITLE}
+    <>
+      <PastConversationsDialog
+        projectId={projectId}
+        open={pastConversationsOpen}
+        onOpenChange={setPastConversationsOpen}
+        onSelect={setSelectedConversationId}
+      />
+      <div className="bg-sidebar flex h-full flex-col">
+        <div className="flex h-8.75 items-center justify-between border-b">
+          <div className="truncate pl-3 text-sm">
+            {activeConversation?.title ?? DEFAULT_CONVERSATION_TITLE}
+          </div>
+          <div className="flex items-center gap-1 px-1 pr-3">
+            <Button
+              size="icon-xs"
+              variant="highlight"
+              onClick={() => setPastConversationsOpen(true)}
+            >
+              <HistoryIcon className="size-3.5" />
+            </Button>
+            <Button
+              size="icon-xs"
+              variant="highlight"
+              onClick={handleCreateConversation}
+            >
+              <PlusIcon className="size-3.5" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1 px-1 pr-3">
-          <Button size="icon-xs" variant="highlight">
-            <HistoryIcon className="size-3.5" />
-          </Button>
-          <Button
-            size="icon-xs"
-            variant="highlight"
-            onClick={handleCreateConversation}
-          >
-            <PlusIcon className="size-3.5" />
-          </Button>
+        <Conversation className="flex-1">
+          <ConversationContent>
+            {conversationMessages?.map((message, messageIndex) => (
+              <Message key={message._id} from={message.role}>
+                <MessageContent>
+                  {message.status === "processing" ? (
+                    <div className="text-muted-foreground flex items-center gap-2">
+                      <LoaderIcon className="size-4 animate-spin" />
+                      <span>Thinking...</span>
+                    </div>
+                  ) : message.status === "cancelled" ? (
+                    <span className="text-muted-foreground italic">
+                      Request cancelled
+                    </span>
+                  ) : (
+                    <MessageResponse>{message.content}</MessageResponse>
+                  )}
+                </MessageContent>
+                {message.role === "assistant" &&
+                  message.status === "completed" &&
+                  messageIndex === (conversationMessages?.length ?? 0) - 1 && (
+                    <MessageActions>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <MessageAction
+                            onClick={() => {
+                              navigator.clipboard.writeText(message.content);
+                            }}
+                            label="Copy"
+                          >
+                            <CopyIcon className="size-3" />
+                          </MessageAction>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">Copy</TooltipContent>
+                      </Tooltip>
+                    </MessageActions>
+                  )}
+              </Message>
+            ))}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+        <div className="p-3">
+          <PromptInput onSubmit={handleSubmit} className="mt-2">
+            <PromptInputBody>
+              <PromptInputTextarea
+                placeholder="Ask Zenith anything..."
+                onChange={(e) => setInput(e.target.value)}
+                value={input}
+                disabled={isProcessing}
+              />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools />
+              <PromptInputSubmit
+                disabled={isProcessing ? false : !input}
+                status={isProcessing ? "streaming" : undefined}
+              />
+            </PromptInputFooter>
+          </PromptInput>
         </div>
       </div>
-      <Conversation className="flex-1">
-        <ConversationContent>
-          {conversationMessages?.map((message, messageIndex) => (
-            <Message key={message._id} from={message.role}>
-              <MessageContent>
-                {message.status === "processing" ? (
-                  <div className="text-muted-foreground flex items-center gap-2">
-                    <LoaderIcon className="size-4 animate-spin" />
-                    <span>Thinking...</span>
-                  </div>
-                ) : message.status === "cancelled" ? (
-                  <span className="text-muted-foreground italic">
-                    Request cancelled
-                  </span>
-                ) : (
-                  <MessageResponse>{message.content}</MessageResponse>
-                )}
-              </MessageContent>
-              {message.role === "assistant" &&
-                message.status === "completed" &&
-                messageIndex === (conversationMessages?.length ?? 0) - 1 && (
-                  <MessageActions>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <MessageAction
-                          onClick={() => {
-                            navigator.clipboard.writeText(message.content);
-                          }}
-                          label="Copy"
-                        >
-                          <CopyIcon className="size-3" />
-                        </MessageAction>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">Copy</TooltipContent>
-                    </Tooltip>
-                  </MessageActions>
-                )}
-            </Message>
-          ))}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-      <div className="p-3">
-        <PromptInput onSubmit={handleSubmit} className="mt-2">
-          <PromptInputBody>
-            <PromptInputTextarea
-              placeholder="Ask Zenith anything..."
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-              disabled={isProcessing}
-            />
-          </PromptInputBody>
-          <PromptInputFooter>
-            <PromptInputTools />
-            <PromptInputSubmit
-              disabled={isProcessing ? false : !input}
-              status={isProcessing ? "streaming" : undefined}
-            />
-          </PromptInputFooter>
-        </PromptInput>
-      </div>
-    </div>
+    </>
   );
 };

@@ -48,12 +48,10 @@ export async function POST(request: NextRequest) {
     },
   );
 
-  console.log(processingMessages);
-
   if (processingMessages.length === 0) {
     return NextResponse.json({ success: true, cancelled: false });
   }
-
+  
   // Cancel all processing messages
   const cancelledIds = await Promise.all(
     processingMessages.map(async (msg) => {
