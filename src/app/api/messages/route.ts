@@ -12,81 +12,77 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const { userId } = await auth();
+  const { userId } = await auth();
 
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-        },
-        {
-          status: 401,
-        },
-      );
-    }
-
-    const internalKey = process.env.ZENITH_CONVEX_INTERNAL_KEY;
-
-    if (!internalKey) {
-      return NextResponse.json(
-        { error: "Internal key not configured" },
-        { status: 500 },
-      );
-    }
-
-    const body = await request.json();
-    const { conversationId, message } = requestSchema.parse(body);
-
-    const conversation = await convex.query(api.system.getConversationById, {
-      internalKey,
-      conversationId: conversationId as Id<"conversations">,
-    });
-
-    if (!conversation) {
-      return NextResponse.json(
-        { error: "Conversation not found" },
-        { status: 404 },
-      );
-    }
-
-    const projectId = conversation.projectId;
-
-    // TODO: Check for processing message
-
-    // Create user message
-    await convex.mutation(api.system.createMessage, {
-      internalKey,
-      conversationId: conversationId as Id<"conversations">,
-      projectId,
-      role: "user",
-      content: message,
-    });
-
-    // Create assistant message placeholder with processing status
-    const assistantMessageId = await convex.mutation(api.system.createMessage, {
-      internalKey,
-      conversationId: conversationId as Id<"conversations">,
-      projectId,
-      role: "assistant",
-      content: "",
-      status: "processing",
-    });
-
-    // TODO: Invoke inngest to process the message
-    const event = await inngest.send({
-      name: "message/sent",
-      data: {
-        messageId: assistantMessageId,
+  if (!userId) {
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
       },
-    });
-
-    return NextResponse.json({
-      success: true,
-      eventId: event.ids[0],
-      messageId: assistantMessageId,
-    });
-  } catch (error) {
-    console.error("Error:", error);
+      {
+        status: 401,
+      },
+    );
   }
+
+  const internalKey = process.env.ZENITH_CONVEX_INTERNAL_KEY;
+
+  if (!internalKey) {
+    return NextResponse.json(
+      { error: "Internal key not configured" },
+      { status: 500 },
+    );
+  }
+
+  const body = await request.json();
+  const { conversationId, message } = requestSchema.parse(body);
+
+  const conversation = await convex.query(api.system.getConversationById, {
+    internalKey,
+    conversationId: conversationId as Id<"conversations">,
+  });
+
+  if (!conversation) {
+    return NextResponse.json(
+      { error: "Conversation not found" },
+      { status: 404 },
+    );
+  }
+
+  const projectId = conversation.projectId;
+
+  // TODO: Check for processing message
+
+  // Create user message
+  await convex.mutation(api.system.createMessage, {
+    internalKey,
+    conversationId: conversationId as Id<"conversations">,
+    projectId,
+    role: "user",
+    content: message,
+  });
+
+  // Create assistant message placeholder with processing status
+  const assistantMessageId = await convex.mutation(api.system.createMessage, {
+    internalKey,
+    conversationId: conversationId as Id<"conversations">,
+    projectId,
+    role: "assistant",
+    content: "",
+    status: "processing",
+  });
+
+  // TODO: Invoke inngest to process the message
+  const event = await inngest.send({
+    name: "message/sent",
+    data: {
+      messageId: assistantMessageId,
+    },
+  });
+
+  return NextResponse.json({
+    success: true,
+    eventId: event.ids[0],
+    messageId: assistantMessageId,
+  });
 }
