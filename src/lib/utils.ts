@@ -7,9 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const formatTimestamp = (timestamp: number) => {
-  console.log(timestamp);
-  console.log(timestamp.toString().length);
-  return formatDistanceToNow(new Date(timestamp-100), {
+  return formatDistanceToNow(new Date(timestamp - 100), {
     addSuffix: true,
   });
 };

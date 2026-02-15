@@ -1,12 +1,23 @@
-import { Button } from "@/components/ui/button";
+import ky from "ky";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DEFAULT_CONVERSATION_TITLE } from "../../../../convex/constants";
 import { CopyIcon, HistoryIcon, LoaderIcon, PlusIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputBody,
@@ -16,22 +27,18 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
+
 import {
   useConversation,
   useConversations,
   useCreateConversation,
   useMessages,
 } from "../hooks/use-conversations";
-import { useState } from "react";
-import { toast } from "sonner";
 import {
-  Message,
-  MessageAction,
-  MessageActions,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message";
-import ky from "ky";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const ConversationSidebar = ({
   projectId,
@@ -46,7 +53,7 @@ export const ConversationSidebar = ({
   const conversations = useConversations(projectId);
 
   const activeConversationId =
-    selectedConversationId ?? conversations?.[0]._id ?? null;
+    selectedConversationId ?? conversations?.[0]?._id ?? null;
 
   const activeConversation = useConversation(activeConversationId);
   const conversationMessages = useMessages(activeConversationId);
@@ -69,10 +76,23 @@ export const ConversationSidebar = ({
     }
   };
 
+  const handleCancel = async () => {
+    try {
+      await ky.post("/api/messages/cancel", {
+        json: {
+          projectId,
+        },
+      });
+    } catch {
+      toast.error("Unable to cancel request");
+    }
+  };
+
   const handleSubmit = async (message: PromptInputMessage) => {
-    // If is processing and no new message, this is just a stop function
+    // If processing and no new message, this is just a stop function
     if (isProcessing && !message.text) {
-      // TODO: await handleCancel()
+      console.log("HERE");
+      await handleCancel();
       setInput("");
       return;
     }
@@ -97,6 +117,8 @@ export const ConversationSidebar = ({
     } catch {
       toast.error("Message failed to send");
     }
+
+    setInput("");
   };
 
   return (
@@ -128,6 +150,10 @@ export const ConversationSidebar = ({
                     <LoaderIcon className="size-4 animate-spin" />
                     <span>Thinking...</span>
                   </div>
+                ) : message.status === "cancelled" ? (
+                  <span className="text-muted-foreground italic">
+                    Request cancelled
+                  </span>
                 ) : (
                   <MessageResponse>{message.content}</MessageResponse>
                 )}
@@ -136,14 +162,19 @@ export const ConversationSidebar = ({
                 message.status === "completed" &&
                 messageIndex === (conversationMessages?.length ?? 0) - 1 && (
                   <MessageActions>
-                    <MessageAction
-                      onClick={() => {
-                        navigator.clipboard.writeText(message.content);
-                      }}
-                      label="Copy"
-                    >
-                      <CopyIcon className="size-3" />
-                    </MessageAction>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <MessageAction
+                          onClick={() => {
+                            navigator.clipboard.writeText(message.content);
+                          }}
+                          label="Copy"
+                        >
+                          <CopyIcon className="size-3" />
+                        </MessageAction>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">Copy</TooltipContent>
+                    </Tooltip>
                   </MessageActions>
                 )}
             </Message>
