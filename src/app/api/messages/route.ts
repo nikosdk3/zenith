@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
     name: "message/sent",
     data: {
       messageId: assistantMessageId,
+      conversationId,
     },
   });
 

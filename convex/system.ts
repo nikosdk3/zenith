@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { fi } from "date-fns/locale";
 
 const validateInternalKey = (key: string) => {
   const internalKey = process.env.ZENITH_CONVEX_INTERNAL_KEY;
@@ -110,5 +111,270 @@ export const getProcessingMessages = query({
         q.eq("projectId", args.projectId).eq("status", "processing"),
       )
       .collect();
+  },
+});
+
+// Used for agent conversation context
+export const getRecentMessages = query({
+  args: {
+    internalKey: v.string(),
+    conversationId: v.id("conversations"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversationId", args.conversationId),
+      )
+      .order("asc")
+      .collect();
+
+    const limit = args.limit ?? 10;
+
+    return messages.slice(-limit);
+  },
+});
+
+// Used to update conversation title from agent
+export const updateConversationTitle = mutation({
+  args: {
+    internalKey: v.string(),
+    conversationId: v.id("conversations"),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    await ctx.db.patch(args.conversationId, {
+      title: args.title,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Used for Agent "ListFiles" tool
+export const getProjectFiles = mutation({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    return await ctx.db
+      .query("files")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+  },
+});
+
+// Used for Agent "ReadFiles" tool
+export const getFileById = query({
+  args: {
+    internalKey: v.string(),
+    fileId: v.id("files"),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    return await ctx.db.get("files", args.fileId);
+  },
+});
+
+// Used for Agent "UpdateFile" tool
+export const updateFile = mutation({
+  args: {
+    internalKey: v.string(),
+    fileId: v.id("files"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const file = await ctx.db.get("files", args.fileId);
+
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    await ctx.db.patch(args.fileId, {
+      content: args.content,
+      updatedAt: Date.now(),
+    });
+
+    return args.fileId;
+  },
+});
+
+// Used for Agent "CreateFile" tool
+export const createFile = mutation({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+    name: v.string(),
+    content: v.string(),
+    parentId: v.optional(v.id("files")),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_project_parent", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const existing = files.find(
+      (file) => file.name === args.name && file.type === "file",
+    );
+
+    if (existing) {
+      throw new Error("File already exists");
+    }
+
+    const fileId = await ctx.db.insert("files", {
+      projectId: args.projectId,
+      name: args.name,
+      parentId: args.parentId,
+      content: args.content,
+      type: "file",
+      updatedAt: Date.now(),
+    });
+
+    return fileId;
+  },
+});
+
+// Used for Agent bulk "CreateFiles" tool
+export const createFiles = mutation({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+    parentId: v.optional(v.id("files")),
+    files: v.array(
+      v.object({
+        name: v.string(),
+        content: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const existingFiles = await ctx.db
+      .query("files")
+      .withIndex("by_project_parent", (q) =>
+        q.eq("projectId", args.projectId).eq("parentId", args.parentId),
+      )
+      .collect();
+
+    const results: { name: string; fileId: string; error?: string }[] = [];
+
+    for (const file of args.files) {
+      const existing = existingFiles.find(
+        (f) => f.name === file.name && f.type === "file",
+      );
+
+      if (existing) {
+        results.push({
+          name: file.name,
+          fileId: existing._id,
+          error: "File already exists",
+        });
+        continue;
+      }
+
+      const fileId = await ctx.db.insert("files", {
+        projectId: args.projectId,
+        name: file.name,
+        content: file.content,
+        type: "file",
+        parentId: args.parentId,
+        updatedAt: Date.now(),
+      });
+
+      results.push({ name: file.name, fileId });
+    }
+
+    return results;
+  },
+});
+
+export const createFolder = mutation({
+  args: {
+    internalKey: v.string(),
+    projectId: v.id("projects"),
+    name: v.string(),
+    parentId: v.optional(v.id("files")),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const folders = await ctx.db
+      .query("files")
+      .withIndex("by_project_parent", (q) =>
+        q.eq("projectId", args.projectId).eq("parentId", args.parentId),
+      )
+      .collect();
+
+    const existing = folders.find(
+      (folder) => folder.name === args.name && folder.type === "folder",
+    );
+
+    if (existing) {
+      throw new Error("Folder already exists");
+    }
+
+    const folderId = await ctx.db.insert("files", {
+      projectId: args.projectId,
+      name: args.name,
+      type: "folder",
+      parentId: args.parentId,
+      updatedAt: Date.now(),
+    });
+
+    return folderId;
+  },
+});
+
+export const renameFile = mutation({
+  args: {
+    internalKey: v.string(),
+    fileId: v.id("files"),
+    newName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const file = await ctx.db.get(args.fileId);
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    const siblings = await ctx.db
+      .query("files")
+      .withIndex("by_project_parent", (q) =>
+        q.eq("projectId", file.projectId).eq("parentId", file.parentId),
+      )
+      .collect();
+
+    const existing = siblings.find(
+      (sibling) =>
+        sibling.name === args.newName &&
+        sibling.type === file.type &&
+        sibling._id !== args.fileId,
+    );
+
+    if (existing) {
+      throw new Error(`A ${file.type} named ${args.newName} already exists`);
+    }
+
+    
+
+    await ctx.db.patch(args.fileId, {
+      name: args.newName,
+    });
   },
 });
