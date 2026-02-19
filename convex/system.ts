@@ -339,6 +339,7 @@ export const createFolder = mutation({
   },
 });
 
+// Used for Agent "RenameFile" tool
 export const renameFile = mutation({
   args: {
     internalKey: v.string(),
@@ -371,10 +372,56 @@ export const renameFile = mutation({
       throw new Error(`A ${file.type} named ${args.newName} already exists`);
     }
 
-    
-
     await ctx.db.patch(args.fileId, {
       name: args.newName,
     });
+  },
+});
+
+// Used for Agent "DeleteFile" tool
+export const deleteFile = mutation({
+  args: {
+    internalKey: v.string(),
+    fileId: v.id("files"),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const file = await ctx.db.get(args.fileId);
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    // Recursively delete file/folder and all descendants
+    const deleteRecursive = async (fileId: typeof args.fileId) => {
+      const item = await ctx.db.get(fileId);
+
+      if (!item) {
+        return;
+      }
+
+      if (item.type === "folder") {
+        const children = await ctx.db
+          .query("files")
+          .withIndex("by_project_parent", (q) =>
+            q.eq("projectId", item.projectId).eq("parentId", fileId),
+          )
+          .collect();
+
+        for (const child of children) {
+          await deleteRecursive(child._id);
+        }
+      }
+
+      // Delete storage file if it exists
+      if (item.storageId) {
+        await ctx.storage.delete(item.storageId);
+      }
+
+      // Delete the file/folder itself
+      await ctx.db.delete(fileId);
+    };
+
+    await deleteRecursive(args.fileId);
   },
 });

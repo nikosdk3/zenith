@@ -103,6 +103,8 @@ export async function POST(request: NextRequest) {
     data: {
       messageId: assistantMessageId,
       conversationId,
+      projectId,
+      message,
     },
   });
 

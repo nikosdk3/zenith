@@ -2,7 +2,6 @@ import ky from "ky";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { DEFAULT_CONVERSATION_TITLE } from "../../../../convex/constants";
 import { CopyIcon, HistoryIcon, LoaderIcon, PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,7 @@ import {
   useMessages,
 } from "../hooks/use-conversations";
 import { PastConversationsDialog } from "./past-conversations-dialog";
+import { DEFAULT_CONVERSATION_TITLE } from "../constants";
 
 export const ConversationSidebar = ({
   projectId,
