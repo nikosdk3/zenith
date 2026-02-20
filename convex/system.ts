@@ -156,7 +156,7 @@ export const updateConversationTitle = mutation({
 });
 
 // Used for Agent "ListFiles" tool
-export const getProjectFiles = mutation({
+export const getProjectFiles = query({
   args: {
     internalKey: v.string(),
     projectId: v.id("projects"),
