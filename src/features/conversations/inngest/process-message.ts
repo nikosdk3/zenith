@@ -14,8 +14,11 @@ import { DEFAULT_CONVERSATION_TITLE } from "../constants";
 import { createReadFilesTool } from "./tools/read-files";
 import { createListFilesTool } from "./tools/list-files";
 import { createUpdateFileTool } from "./tools/update-file";
-import { createCreateFileTool } from "./tools/create-files";
+import { createCreateFilesTool } from "./tools/create-files";
 import { createCreateFolderTool } from "./tools/create-folder";
+import { createRenameFileTool } from "./tools/rename-file";
+import { createDeleteFilesTool } from "./tools/delete-files";
+import { createScrapeUrlsTool } from "./tools/scrape-urls";
 
 interface MessageEvent {
   messageId: Id<"messages">;
@@ -158,8 +161,11 @@ export const processMessage = inngest.createFunction(
         createListFilesTool({ projectId, internalKey }),
         createReadFilesTool({ internalKey }),
         createUpdateFileTool({ internalKey }),
-        createCreateFileTool({ projectId, internalKey }),
+        createCreateFilesTool({ projectId, internalKey }),
         createCreateFolderTool({ projectId, internalKey }),
+        createRenameFileTool({ internalKey }),
+        createDeleteFilesTool({ internalKey }),
+        createScrapeUrlsTool(),
       ],
     });
 

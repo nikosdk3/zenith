@@ -6,7 +6,7 @@ import { convex } from "@/lib/convex-client";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 
-interface CreateFileToolOptions {
+interface CreateFilesToolOptions {
   projectId: Id<"projects">;
   internalKey: string;
 }
@@ -23,10 +23,10 @@ const paramsSchema = z.object({
     .min(1, "Provide at least one file to create"),
 });
 
-export const createCreateFileTool = ({
+export const createCreateFilesTool = ({
   projectId,
   internalKey,
-}: CreateFileToolOptions) => {
+}: CreateFilesToolOptions) => {
   return createTool({
     name: "createFiles",
     description:
