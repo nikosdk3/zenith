@@ -7,11 +7,10 @@ type FileDoc = Doc<"files">;
 /**
  * Convert Convex file tree structure to Webcontainers FileSystemTree structure
  */
-export const buildTreeFile = (files: FileDoc[]): FileSystemTree => {
+export const buildFileTree = (files: FileDoc[]): FileSystemTree => {
   const tree: FileSystemTree = {};
   const fileMap = new Map(files.map((f) => [f._id, f]));
 
-  // { "id"  }
   const getPath = (file: FileDoc): string[] => {
     const parts: string[] = [file.name];
     let parentId = file.parentId;
@@ -58,7 +57,7 @@ export const buildTreeFile = (files: FileDoc[]): FileSystemTree => {
 /**
  * Get full path for a file by traversing parent chain
  */
-const getFilePath = (
+export const getFilePath = (
   file: FileDoc,
   filesMap: Map<Id<"files">, FileDoc>,
 ): string => {
