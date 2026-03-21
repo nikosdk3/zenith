@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { WebContainer } from "@webcontainer/api";
 
 import { useFiles } from "@/features/projects/hooks/use-files";
@@ -23,7 +23,7 @@ const getWebContainer = async (): Promise<WebContainer> => {
   return webcontainerInstance;
 };
 
-const teardownContainer = () => {
+const teardownWebContainer = () => {
   if (webcontainerInstance) {
     webcontainerInstance.teardown();
     webcontainerInstance = null;
@@ -155,4 +155,33 @@ export const useWebContainer = ({
       container.fs.writeFile(filePath, file.content);
     }
   }, [files, status]);
+
+  // Reset when disabled
+  useEffect(() => {
+    if (!enabled) {
+      hasStartedRef.current = false;
+      setStatus("idle");
+      setPreviewUrl(null);
+      setError(null);
+    }
+  }, [enabled]);
+
+  // Restart entire WebContainer process
+  const restart = useCallback(() => {
+    teardownWebContainer();
+    containerRef.current = null;
+    hasStartedRef.current = false;
+    setStatus("idle");
+    setPreviewUrl(null);
+    setError(null);
+    setRestartKey((k) => k + 1);
+  }, []);
+
+  return {
+    status,
+    previewUrl,
+    error,
+    restart,
+    terminalOutput,
+  };
 };
