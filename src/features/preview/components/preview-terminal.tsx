@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
-import "@xterm/xterm/xterm.css";
+import "@xterm/xterm/css/xterm.css";
 
 interface PreviewTerminalProps {
   output: string;

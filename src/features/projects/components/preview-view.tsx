@@ -1,14 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { Allotment } from "allotment";
+import {
+  AlertTriangleIcon,
+  Loader2Icon,
+  RefreshCwIcon,
+  TerminalSquareIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useWebContainer } from "@/features/preview/hooks/use-webcontainer";
+import { PreviewSettingsPopover } from "@/features/preview/components/preview-settings-popover";
 
 import { Id } from "../../../../convex/_generated/dataModel";
 import { useProject } from "../hooks/use-projects";
-import { Loader2Icon, RefreshCwIcon, TerminalSquareIcon } from "lucide-react";
-import { PreviewSettingsPopover } from "@/features/preview/components/preview-settings-popover";
+import { PreviewTerminal } from "@/features/preview/components/preview-terminal";
 
 export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
   const project = useProject(projectId);
@@ -62,6 +69,53 @@ export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
           initialValues={project?.settings}
           onSave={restart}
         />
+      </div>
+
+      <div className="min-h-0 flex-1">
+        <Allotment vertical>
+          <Allotment.Pane>
+            {error && (
+              <div className="text-muted-foreground flex size-full items-center justify-center">
+                <div className="mx-auto flex max-w-md flex-col items-center gap-2 text-center">
+                  <AlertTriangleIcon className="size-6" />
+                  <p className="text-sm font-medium">{error}</p>
+                  <Button size="sm" variant="outline" onClick={restart}>
+                    <RefreshCwIcon className="size-4" />
+                    Restart
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isLoading && !error && (
+              <div className="text-muted-foreground flex size-full items-center justify-center">
+                <div className="mx-auto flex max-w-md flex-col items-center gap-2 text-center">
+                  <Loader2Icon className="size-6 animate-spin" />
+                  <p className="text-sm font-medium">Installing...</p>
+                </div>
+              </div>
+            )}
+
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="size-full border-0"
+                title="Preview"
+              />
+            )}
+          </Allotment.Pane>
+          {showTerminal && (
+            <Allotment.Pane minSize={100} maxSize={500} preferredSize={200}>
+              <div className="bg-background flex h-full flex-col border-t">
+                <div className="text-muted-foreground border-border/50 flex h-7 shrink-0 items-center gap-1.5 border-b px-3 text-xs">
+                  <TerminalSquareIcon className="size-3" />
+                  Terminal
+                </div>
+                <PreviewTerminal output={terminalOutput} />
+              </div>
+            </Allotment.Pane>
+          )}
+        </Allotment>
       </div>
     </div>
   );
