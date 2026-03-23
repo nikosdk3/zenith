@@ -11,11 +11,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useWebContainer } from "@/features/preview/hooks/use-webcontainer";
+import { PreviewTerminal } from "@/features/preview/components/preview-terminal";
 import { PreviewSettingsPopover } from "@/features/preview/components/preview-settings-popover";
 
 import { Id } from "../../../../convex/_generated/dataModel";
 import { useProject } from "../hooks/use-projects";
-import { PreviewTerminal } from "@/features/preview/components/preview-terminal";
 
 export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
   const project = useProject(projectId);

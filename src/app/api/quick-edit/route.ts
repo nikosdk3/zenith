@@ -1,9 +1,10 @@
-import z from "zod";
+import { z } from "zod";
 import { google } from "@ai-sdk/google";
-import { generateText, Output } from "ai";
 import { auth } from "@clerk/nextjs/server";
-import { firecrawl } from "@/lib/firecrawl";
+import { generateText, Output } from "ai";
 import { NextRequest, NextResponse } from "next/server";
+
+import { firecrawl } from "@/lib/firecrawl";
 
 const quickEditSchema = z.object({
   editedCode: z

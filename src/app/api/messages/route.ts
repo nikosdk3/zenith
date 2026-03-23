@@ -1,10 +1,12 @@
-import { convex } from "@/lib/convex-client";
-import { auth } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { NextRequest, NextResponse } from "next/server";
+
+import { auth } from "@clerk/nextjs/server";
 import { inngest } from "@/inngest/client";
+import { convex } from "@/lib/convex-client";
+
+import { Id } from "../../../../convex/_generated/dataModel";
+import { api } from "../../../../convex/_generated/api";
 
 const requestSchema = z.object({
   conversationId: z.string(),
