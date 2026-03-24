@@ -8,6 +8,7 @@ import { inngest } from "@/inngest/client";
 
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
+import { success } from "zod";
 
 interface ImportGithubRepoEvent {
   owner: string;
@@ -140,8 +141,54 @@ export const ImportGithubRepo = inngest.createFunction(
 
           const pathParts = file.path.split("/");
           const name = pathParts.pop()!;
-        } catch {}
+          const parentPath = pathParts.join("/");
+          const parentId = parentPath ? folderIdMap[parentPath] : undefined;
+
+          if (isBinary) {
+            const uploadUrl = await convex.mutation(
+              api.system.generateUploadUrl,
+              { internalKey },
+            );
+
+            const { storageId } = await ky
+              .post(uploadUrl, {
+                headers: { "Content-Type": "application/octet-stream" },
+                body: buffer,
+              })
+              .json<{ storageId: Id<"_storage"> }>();
+
+            await convex.mutation(api.system.createBinaryFile, {
+              internalKey,
+              projectId,
+              name,
+              storageId,
+              parentId,
+            });
+          } else {
+            const content = buffer.toString("utf-8");
+
+            await convex.mutation(api.system.createFile, {
+              internalKey,
+              projectId,
+              name,
+              content,
+              parentId,
+            });
+          }
+        } catch {
+          console.error(`Failed to import file: ${file.path}`);
+        }
       }
     });
+
+    await step.run("set-completed-status", async () => {
+      await convex.mutation(api.system.updateImportStatus, {
+        internalKey,
+        projectId,
+        status: "completed",
+      });
+    });
+
+    return { success: true, projectId };
   },
 );
