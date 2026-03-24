@@ -68,14 +68,18 @@ export const ImportGithubRepo = inngest.createFunction(
         return data;
       } catch {
         // Fallback to master branch
-        const { data } = await octokit.rest.git.getTree({
-          owner,
-          repo,
-          tree_sha: "master",
-          recursive: "1",
-        });
+        try {
+          const { data } = await octokit.rest.git.getTree({
+            owner,
+            repo,
+            tree_sha: "master",
+            recursive: "1",
+          });
 
-        return data;
+          return data;
+        } catch {
+          throw new NonRetriableError("Repository or branch not found");
+        }
       }
     });
 

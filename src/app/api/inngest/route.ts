@@ -2,9 +2,14 @@ import { serve } from "inngest/next";
 
 import { inngest } from "@/inngest/client";
 import { processMessage } from "@/features/conversations/inngest/process-message";
-import { demoError, demoGenerate } from "@/inngest/functions";
+import { ImportGithubRepo } from "@/features/projects/inngest/import-github-repo";
+import { exportToGithub } from "@/features/projects/inngest/export-to-github";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [demoGenerate, demoError, processMessage],
+  functions: [
+    processMessage,
+    ImportGithubRepo,
+    exportToGithub,
+  ],
 });
