@@ -6,9 +6,8 @@ import { NonRetriableError } from "inngest";
 import { convex } from "@/lib/convex-client";
 import { inngest } from "@/inngest/client";
 
-import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { success } from "zod";
+import { api } from "../../../../convex/_generated/api";
 
 interface ImportGithubRepoEvent {
   owner: string;

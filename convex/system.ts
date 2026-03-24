@@ -547,7 +547,7 @@ export const updateExportStatus = mutation({
   },
 });
 
-export const getProjectFilesWithURLs = mutation({
+export const getProjectFilesWithURLs = query({
   args: {
     internalKey: v.string(),
     projectId: v.id("projects"),

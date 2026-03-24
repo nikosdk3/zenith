@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
       visibility,
       description,
       githubToken,
-      internalKey,
     },
   });
 
