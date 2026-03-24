@@ -14,11 +14,11 @@ import {
 import { cn } from "@/lib/utils";
 import { Kbd } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
-import { ImportGithubDialog } from "@/features/projects/components/import-github-dialog";
 
 import { font } from "../utils/font";
 import { ProjectsList } from "./projects-list";
 import { useCreateProject } from "../hooks/use-projects";
+import { ImportGithubDialog } from "./import-github-dialog";
 import { ProjectsCommandDialog } from "./projects-command-dialog";
 
 export const ProjectsView = () => {
@@ -33,6 +33,10 @@ export const ProjectsView = () => {
         if (e.key === "k") {
           e.preventDefault();
           setCommandDialogOpen(true);
+        }
+        if (e.key === "i") {
+          e.preventDefault();
+          setImportDialogOpen(true);
         }
       }
     };

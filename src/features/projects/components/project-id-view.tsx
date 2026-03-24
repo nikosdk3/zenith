@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { FaGithub } from "react-icons/fa";
 import { Allotment } from "allotment";
 
 import { cn } from "@/lib/utils";
 import { EditorView } from "@/features/editor/components/editor-view";
 
-import { Id } from "../../../../convex/_generated/dataModel";
 import { Tab } from "./tab";
 import { FileExplorer } from "./file-explorer";
 import { PreviewView } from "./preview-view";
+import { ExportPopover } from "./export-popover";
+
+import { Id } from "../../../../convex/_generated/dataModel";
 
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 800;
@@ -34,10 +35,7 @@ export const ProjectIdView = ({ projectId }: { projectId: Id<"projects"> }) => {
           onClick={() => setActiveView("preview")}
         />
         <div className="flex h-full flex-1 justify-end">
-          <div className="text-muted-foreground hover:bg-accent/30 flex h-full cursor-pointer items-center gap-1.5 border-l px-3">
-            <FaGithub className="size-3.5" />
-            <span className="text-sm">Export</span>
-          </div>
+          <ExportPopover projectId={projectId} />
         </div>
       </nav>
       <div className="relative flex-1">
