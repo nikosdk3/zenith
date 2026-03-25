@@ -4,6 +4,15 @@ import { toast } from "sonner";
 import { useForm } from "@tanstack/react-form";
 import { useClerk } from "@clerk/nextjs";
 import { useState } from "react";
+import { FaGithub } from "react-icons/fa";
+import {
+  CheckCheckIcon,
+  CheckCircle2Icon,
+  CircleCheck,
+  ExternalLinkIcon,
+  LoaderIcon,
+  XCircleIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +34,7 @@ import {
 import { useProject } from "../hooks/use-projects";
 
 import { Id } from "../../../../convex/_generated/dataModel";
-import { CheckCheckIcon, LoaderIcon, XCircleIcon } from "lucide-react";
-import { FaGithub } from "react-icons/fa";
+import Link from "next/link";
 
 const formSchema = z.object({
   repoName: z
@@ -101,6 +109,144 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
     setOpen(false);
   };
 
+  const handleResetExport = async () => {
+    await ky.post("/api/github/export/reset", {
+      json: { projectId },
+    });
+    setOpen(false);
+  };
+
+  const renderContent = () => {
+    if (exportStatus === "exporting") {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <LoaderIcon className="text-muted-foreground size-6 animate-spin" />
+          <span className="text-muted-foreground text-sm">
+            Exporting to Github...
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={handleCancelExport}
+          >
+            Cancel
+          </Button>
+        </div>
+      );
+    }
+
+    if (exportStatus === "completed" && exportRepoUrl) {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <CheckCircle2Icon className="size-6 text-emerald-500" />
+          <p className="text-sm font-medium">Repository created</p>
+          <p className="text-muted-foreground text-center text-xs">
+            Your project has been exported to GitHub
+          </p>
+          <div className="flex w-full flex-col gap-2">
+            <Button size="sm" className="w-full" asChild>
+              <Link
+                href={exportRepoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLinkIcon className="mr-1 size-4" />
+                View on GitHub
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={handleResetExport}
+            >
+              Re-Export
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (exportStatus === "failed") {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <XCircleIcon className="size-6 text-rose-500" />
+          <p className="text-sm font-medium">Unable to Export</p>
+          <p className="text-muted-foreground text-center text-xs">
+            Something went wrong. Please try again.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={handleResetExport}
+          >
+            Retry
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <h4 className="text-sm font-medium">Export to GitHub</h4>
+            <p className="text-muted-foreground text-xs">
+              Export your project to a GitHub repository.
+            </p>
+          </div>
+          <form.Field name="repoName">
+            {(field) => {
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor={field.name}>Repository Name</FieldLabel>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-invalid={isInvalid}
+                    placeholder={project?.name}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="visibility">
+            {(field) => {
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor={field.name}>Repository Name</FieldLabel>
+                  <Select>
+                    <SelectTrigger asChild></SelectTrigger>
+                    <SelectContent></SelectContent>
+                  </Select>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          </form.Field>
+        </div>
+      </form>
+    );
+  };
+
   const getStatusIcon = () => {
     if (exportStatus === "exporting") {
       return <LoaderIcon className="size-3.5 animate-spin" />;
@@ -122,6 +268,9 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
           <span className="text-sm">Export</span>
         </div>
       </PopoverTrigger>
+      <PopoverContent className="w-80" align="start">
+        {renderContent()}
+      </PopoverContent>
     </Popover>
   );
 };
