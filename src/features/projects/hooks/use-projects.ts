@@ -76,6 +76,22 @@ export const useRenameProject = () => {
   );
 };
 
+export const useRemoveProject = () => {
+  return useMutation(api.projects.remove).withOptimisticUpdate(
+    (localStore, args) => {
+      const projects = localStore.getQuery(api.projects.get);
+
+      if (projects !== undefined) {
+        const filtered = projects.filter((project) => project._id !== args.id);
+
+        localStore.setQuery(api.projects.get, {}, filtered);
+      }
+
+      localStore.setQuery(api.projects.getById, { id: args.id }, undefined);
+    },
+  );
+};
+
 export const useUpdateProjectSettings = () => {
   // TODO: Add optimistic mutation
   return useMutation(api.projects.updateSettings);

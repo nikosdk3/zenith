@@ -1,4 +1,5 @@
 import ky, { HTTPError } from "ky";
+import Link from "next/link";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useForm } from "@tanstack/react-form";
@@ -8,7 +9,6 @@ import { FaGithub } from "react-icons/fa";
 import {
   CheckCheckIcon,
   CheckCircle2Icon,
-  CircleCheck,
   ExternalLinkIcon,
   LoaderIcon,
   XCircleIcon,
@@ -31,10 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useProject } from "../hooks/use-projects";
-
 import { Id } from "../../../../convex/_generated/dataModel";
-import Link from "next/link";
+import { useProject } from "../hooks/use-projects";
 
 const formSchema = z.object({
   repoName: z
@@ -76,7 +74,7 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
           json: {
             projectId,
             repoName: value.repoName,
-            visibility: value.repoName,
+            visibility: value.visibility,
             description: value.description || undefined,
           },
         });
@@ -227,21 +225,66 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
 
           <form.Field name="visibility">
             {(field) => {
+              return (
+                <Field>
+                  <FieldLabel htmlFor={field.name}>Visibility</FieldLabel>
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(value: "public" | "private") => {
+                      field.handleChange(value);
+                    }}
+                  >
+                    <SelectTrigger id={field.name}>
+                      <SelectValue placeholder="Select placeholder" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="public">Public</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="description">
+            {(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
 
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Repository Name</FieldLabel>
-                  <Select>
-                    <SelectTrigger asChild></SelectTrigger>
-                    <SelectContent></SelectContent>
-                  </Select>
+                  <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                  <Textarea
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-invalid={isInvalid}
+                    placeholder="A short description of your project"
+                    rows={2}
+                  />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
               );
             }}
           </form.Field>
+
+          <form.Subscribe
+            selector={(state) => [state.canSubmit, state.isSubmitting]}
+          >
+            {([canSubmit, isSubmitting]) => (
+              <Button
+                type="submit"
+                size="sm"
+                className="w-full"
+                disabled={isSubmitting || !canSubmit}
+              >
+                {isSubmitting ? "Creating..." : "Create Repository"}
+              </Button>
+            )}
+          </form.Subscribe>
         </div>
       </form>
     );

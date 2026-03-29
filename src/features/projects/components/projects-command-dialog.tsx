@@ -9,8 +9,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 
-import { useProjects } from "../hooks/use-projects";
+import { useProjects, useRemoveProject } from "../hooks/use-projects";
 import { getProjectIcon } from "../utils/get-project-icon";
+import { Id } from "../../../../convex/_generated/dataModel";
+import { Trash2Icon } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -20,10 +22,15 @@ interface Props {
 export const ProjectsCommandDialog = ({ open, onOpenChange }: Props) => {
   const router = useRouter();
   const projects = useProjects();
+  const removeProject = useRemoveProject();
 
   const handleSelect = (projectId: string) => {
     router.push(`/projects/${projectId}`);
     onOpenChange(false);
+  };
+
+  const handleRemoveProject = (projectId: Id<"projects">) => {
+    return removeProject({ id: projectId });
   };
 
   return (
@@ -42,9 +49,20 @@ export const ProjectsCommandDialog = ({ open, onOpenChange }: Props) => {
               key={project._id}
               value={`${project.name}-${project._id}`}
               onSelect={() => handleSelect(project._id)}
+              className="flex items-center justify-between"
             >
-              {getProjectIcon(project, 4)}
-              <span>{project.name}</span>
+              <div className="flex items-center gap-2">
+                {getProjectIcon(project, 4)}
+                <span>{project.name}</span>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveProject(project._id);
+                }}
+              >
+                <Trash2Icon className="size-6"/>
+              </button>
             </CommandItem>
           ))}
         </CommandGroup>
