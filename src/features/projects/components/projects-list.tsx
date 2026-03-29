@@ -1,7 +1,7 @@
 import { Kbd } from "@/components/ui/kbd";
 import { Spinner } from "@/components/ui/spinner";
 
-import { useProjectsPartial } from "../hooks/use-projects";
+import { useProjectsPartial, useRemoveProject } from "../hooks/use-projects";
 import { ProjectItem } from "./project-item";
 import { ContinueCard } from "./continue-card";
 

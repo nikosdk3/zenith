@@ -18,12 +18,14 @@ import { Button } from "@/components/ui/button";
 import { font } from "../utils/font";
 import { ProjectsList } from "./projects-list";
 import { useCreateProject } from "../hooks/use-projects";
+import { ImportGithubDialog } from "./import-github-dialog";
 import { ProjectsCommandDialog } from "./projects-command-dialog";
 
 export const ProjectsView = () => {
   const createProject = useCreateProject();
 
   const [commandDialogOpen, setCommandDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,6 +33,10 @@ export const ProjectsView = () => {
         if (e.key === "k") {
           e.preventDefault();
           setCommandDialogOpen(true);
+        }
+        if (e.key === "i") {
+          e.preventDefault();
+          setImportDialogOpen(true);
         }
       }
     };
@@ -46,6 +52,10 @@ export const ProjectsView = () => {
       <ProjectsCommandDialog
         open={commandDialogOpen}
         onOpenChange={setCommandDialogOpen}
+      />
+      <ImportGithubDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
       />
       <div className="bg-sidebar flex min-h-screen flex-col items-center justify-center p-6 md:p-16">
         <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4">
@@ -94,7 +104,7 @@ export const ProjectsView = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => {}}
+                onClick={() => setImportDialogOpen(true)}
                 className="bg-background flex h-full flex-col items-start justify-start gap-6 rounded-none border p-4"
               >
                 <div className="flex w-full items-center justify-between">

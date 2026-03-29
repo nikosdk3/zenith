@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
+import { auth } from "@clerk/nextjs/server";
 import { google } from "@ai-sdk/google";
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateText, Output } from "ai";
+import { NextRequest, NextResponse } from "next/server";
 
 const suggestionSchema = z.object({
   suggestion: z
