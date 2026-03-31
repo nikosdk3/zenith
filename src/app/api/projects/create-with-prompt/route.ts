@@ -1,12 +1,6 @@
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import {
-  adjectives,
-  animals,
-  colors,
-  uniqueNamesGenerator,
-} from "unique-names-generator";
 
 import { inngest } from "@/inngest/client";
 import { convex } from "@/lib/convex-client";
@@ -15,6 +9,7 @@ import { DEFAULT_CONVERSATION_TITLE } from "@/features/conversations/constants";
 import { api } from "../../../../../convex/_generated/api";
 
 const requestSchema = z.object({
+  projectName: z.string().min(1),
   prompt: z.string().min(1),
 });
 
@@ -37,14 +32,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { prompt } = requestSchema.parse(body);
-
-  // Generate a random project name
-  const projectName = uniqueNamesGenerator({
-    dictionaries: [adjectives, animals, colors],
-    separator: "-",
-    length: 3,
-  });
+  const { projectName, prompt } = requestSchema.parse(body);
 
   // Create project and conversation together
   const { projectId, conversationId } = await convex.mutation(

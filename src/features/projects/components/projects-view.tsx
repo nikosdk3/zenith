@@ -20,12 +20,14 @@ import { ProjectsList } from "./projects-list";
 import { useCreateProject } from "../hooks/use-projects";
 import { ImportGithubDialog } from "./import-github-dialog";
 import { ProjectsCommandDialog } from "./projects-command-dialog";
+import { NewProjectDialog } from "./new-project-dialog";
 
 export const ProjectsView = () => {
   const createProject = useCreateProject();
 
   const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -37,6 +39,10 @@ export const ProjectsView = () => {
         if (e.key === "i") {
           e.preventDefault();
           setImportDialogOpen(true);
+        }
+        if (e.key === "j") {
+          e.preventDefault();
+          setProjectDialogOpen(true);
         }
       }
     };
@@ -56,6 +62,10 @@ export const ProjectsView = () => {
       <ImportGithubDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
+      />
+      <NewProjectDialog
+        open={projectDialogOpen}
+        onOpenChange={setProjectDialogOpen}
       />
       <div className="bg-sidebar flex min-h-screen flex-col items-center justify-center p-6 md:p-16">
         <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4">
@@ -83,17 +93,7 @@ export const ProjectsView = () => {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  const projectName = uniqueNamesGenerator({
-                    dictionaries: [adjectives, animals, colors],
-                    separator: "-",
-                    length: 3,
-                  });
-
-                  createProject({
-                    name: projectName,
-                  });
-                }}
+                onClick={() => setProjectDialogOpen(true)}
                 className="bg-background flex h-full flex-col items-start justify-start gap-6 rounded-none border p-4"
               >
                 <div className="flex w-full items-center justify-between">
