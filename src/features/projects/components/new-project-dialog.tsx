@@ -1,15 +1,15 @@
 "use client";
 
-import { z } from "zod";
-import { useEffect, useState } from "react";
 import ky from "ky";
+import { z } from "zod";
 import { toast } from "sonner";
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
+import { Field, FieldError } from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
 import { useCreateProject } from "../hooks/use-projects";
 
 import { Id } from "../../../../convex/_generated/dataModel";
-import { Textarea } from "@/components/ui/textarea";
 
 interface NewProjectDialogProps {
   open: boolean;
@@ -40,8 +39,6 @@ export const NewProjectDialog = ({
   const router = useRouter();
   const createProject = useCreateProject();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const form = useForm({
     defaultValues: {
       projectName: "",
@@ -51,8 +48,6 @@ export const NewProjectDialog = ({
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsSubmitting(true);
-
       try {
         let projectId;
         const message = value.message.trim();
@@ -75,8 +70,6 @@ export const NewProjectDialog = ({
         router.push(`/projects/${projectId}`);
       } catch {
         toast.error("Unable to create project");
-      } finally {
-        setIsSubmitting(false);
       }
     },
   });
