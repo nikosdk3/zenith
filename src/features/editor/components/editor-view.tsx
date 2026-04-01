@@ -9,6 +9,7 @@ import { useEditor } from "../hooks/use-editor";
 import { CodeEditor } from "./code-editor";
 import { TopNavigation } from "./top-navigation";
 import { FileBreadcrumbs } from "./file-breadcrumbs";
+import { AlertTriangleIcon } from "lucide-react";
 
 const DEBOUNCE_MS = 1500;
 
@@ -63,7 +64,15 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
             }}
           />
         )}
-        {isActiveFileBinary && <p>TODO: Implement Binary File Preview</p>}
+        {isActiveFileBinary && (
+          <div className="flex size-full flex-col items-center justify-center space-y-3 text-center">
+            <AlertTriangleIcon className="size-10 text-yellow-500" />
+            <p className="text-sm">
+              The file is not displayed in the editor because it is either
+              binary or uses an unsupported text encoding.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
