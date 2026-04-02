@@ -71,7 +71,7 @@ export const ImportGithubDialog = ({
             onOpenChange(false);
             return;
           }
-          if (body?.error?.includes("GitHub not connected")) {
+          if (body.error.includes("GitHub not connected")) {
             toast.error("GitHub account not connected", {
               action: {
                 label: "Connect",

@@ -92,7 +92,7 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
             });
             setOpen(false);
             return;
-          } else if (body?.error?.includes("GitHub not connected")) {
+          } else if (body.error.includes("GitHub not connected")) {
             toast.error("GitHub account not connected", {
               action: {
                 label: "Connect",
@@ -103,7 +103,7 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
             return;
           }
         }
-        toast.error(error.message);
+        toast.error("Unable to export repository");
       }
     },
   });
