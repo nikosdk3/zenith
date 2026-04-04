@@ -47,6 +47,10 @@ export const TreeItemWrapper = ({
               e.preventDefault();
               onRename?.();
             }
+            if ((e.metaKey || e.ctrlKey) && e.key === "Backspace") {
+              e.preventDefault();
+              onDelete?.();
+            }
           }}
           className={cn(
             "group hover:bg-accent/30 focus:ring-ring flex h-5.5 w-full items-center gap-1 outline-none focus:ring-1 focus:ring-inset",

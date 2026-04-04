@@ -93,6 +93,5 @@ export const useRemoveProject = () => {
 };
 
 export const useUpdateProjectSettings = () => {
-  // TODO: Add optimistic mutation
   return useMutation(api.projects.updateSettings);
 };

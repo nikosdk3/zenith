@@ -73,12 +73,16 @@ export const exportToGithub = inngest.createFunction(
 
     // Create the new repository with auto_init to have an initial commit
     const { data: repo } = await step.run("create-repo", async () => {
-      return await octokit.rest.repos.createForAuthenticatedUser({
-        name: repoName,
-        description: description || "Exported from Zenith",
-        private: visibility === "private",
-        auto_init: true,
-      });
+      try {
+        return await octokit.rest.repos.createForAuthenticatedUser({
+          name: repoName,
+          description: description || "Exported from Zenith",
+          private: visibility === "private",
+          auto_init: true,
+        });
+      } catch (error: any) {
+        throw new NonRetriableError(error.message);
+      }
     });
 
     // Wait for Github to initialize the repo (auto_init is async on Github's side)

@@ -591,3 +591,29 @@ export const createProject = mutation({
     return projectId;
   },
 });
+
+export const createProjectWithConversation = mutation({
+  args: {
+    internalKey: v.string(),
+    projectName: v.string(),
+    conversationTitle: v.string(),
+    ownerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const projectId = await ctx.db.insert("projects", {
+      name: args.projectName,
+      ownerId: args.ownerId,
+      updatedAt: Date.now(),
+    });
+
+    const conversationId = await ctx.db.insert("conversations", {
+      projectId,
+      title: args.conversationTitle,
+      updatedAt: Date.now(),
+    });
+
+    return { projectId, conversationId };
+  },
+});
